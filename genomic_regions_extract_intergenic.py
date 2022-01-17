@@ -63,7 +63,7 @@ synopsis2 = "detailed description:\n\
  by ohdongha@gmail.com ver0.3.1 20200928\n"
  
 #version_history
-#20201114 script renamed to "genomic_regions_extract_sequences.py"
+#20201114 script renamed to "genomic_regions_extract_intergenic.py"
 #20200928 ver 0.3.1 # activate the '-3' option perhaps by flipping the strand sign? ... hehehe (evil grin) 
 #20200614 ver 0.3 # modified to work with python 3.8
 #20200311 ver 0.2.1 # minor bug fix for -m option (not printing sequences SHORTER than min_len)

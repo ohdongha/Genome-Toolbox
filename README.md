@@ -3,7 +3,7 @@ A set of python scripts useful when analyzing and/or fixing a draft genome assem
 
 - `genomic_regions_collapse_overlaps.py` collapses overlapping genomic regions in tab-delimited tables with chromosome IDs, start, and end positions.
 
-- `genomic_regions_extract_sequences.py` extract sequences (e.g. promoter regions) from a fasta file, given a tab-delimited list of chromosome IDs, start, and end positions.
+- `genomic_regions_extract_intergenic.py` extract 5' and 3' sequences for all gene models, given a set of genome (`*.genome.fa`) and gene model (`*.gtf`) files. Also create LASTZ commands for comparigng intergenic regions of ortholog pairs. 
 
 - `genomic_regions_mark_overlaps.py` marks overlaps between two tab-delimited list of genomic regions.
 
