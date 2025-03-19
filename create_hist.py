@@ -30,9 +30,14 @@ create_hist.py <table.txt> <N> <bin_size> <output.hist>\n\n\
  - <N> == 1 indicate the 1st column; \n\
  - <bin_size> should be a positive float number, larger than 0.0001; \n\
  - ignore non-numerical values from the input.\n\
-by ohdongha@gmail.com ver0.2.4 20200904\n"
+by ohdongha@gmail.com ver0.2.9 20220914\n"
 
 #version_history
+#20220914 ver 0.2.9 # to be used in wrapper scripts, make sure nothing printed to stdout
+#20220907 ver 0.2.8 # show the sum and the column number at the end
+#20220809 ver 0.2.7 # show max and min values (instead of stdev) at the end
+#20220427 ver 0.2.6 # skips inf values + messages printed to stderr insead of stdout
+#20201216 ver 0.2.5 # add # of faulty lines, mean, median, etc, at the end of the output file
 #20200904 ver 0.2.4 # modified to work with python 3 + minor bug fixes
 #20181204 ver 0.2.3 # 1st column of the output modified,
 #20171112 ver 0.2.2 # print standard deviation
@@ -49,14 +54,14 @@ try:
 	col_index = int(sys.argv[2].strip())
 	if col_index <= 1 :
 		col_index = 1
-		print( "col_index is set to 1.\n" )
+		sys.stderr.write( "col_index is set to 1.\n" )
 	bin_size = float(sys.argv[3].strip())
 	if bin_size <= 0.0 :
 		bin_size = 1.0
-		print( "bin_size is set to 1.\n" )
+		sys.stderr.write( "bin_size is set to 1.\n" )
 	fout = open(sys.argv[4], "w")
 except (IndexError, ValueError) :
-	print( synopsis )
+	sys.stderr.write( synopsis )
 	sys.exit(0)
 
 	
@@ -79,24 +84,36 @@ for line in fin:
 		Sum = Sum + Value
 		Value_list.append(Value)
 		if ( num_lines % report_progress_interval == 0):
-			sys.stdout.write("\r   counted %d lines" % num_lines)
-			sys.stdout.flush()
-	except (ValueError, IndexError) as err :
-		print( "%s at line %d ...\n" % (err, num_lines) )
+			sys.stderr.write("\r   counted %d lines\r" % num_lines)
+			sys.stderr.flush()
+	except (ValueError, IndexError, OverflowError) as err :
+#		sys.stderr.write( "%s at line %d ...\n" % (err, num_lines) ) # for debuggin purpose
 		FaultyLines = FaultyLines + 1
 		pass
 
 try:
-	print( "\n%s : Total %d values counted." % (sys.argv[1].strip(), len(Value_list)) )
-	print( "%s : There were %d faulty lines." % (sys.argv[1].strip(), FaultyLines) )
-	print( "%s : median, mean, and stdev of %d values == %f, %f, %f" % \
-			(sys.argv[1].strip(), len(Value_list), median(Value_list), mean(Value_list), stddev(Value_list) ) )
+	sys.stderr.write( "\n%s : Total %d values counted from column %d.\n" % (sys.argv[1].strip(), num_lines, col_index) )
+	sys.stderr.write( "%s : There were %d faulty lines.\n" % (sys.argv[1].strip(), FaultyLines) )
+	sys.stderr.write( "%s : median, mean, min., max., and sum. of %d values == %.3f, %.3f, %.3f, %.3f, and %.3f\n" % \
+			(sys.argv[1].strip(), len(Value_list), median(Value_list), mean(Value_list), min(Value_list), max(Value_list), sum(Value_list) ) )
+#	sys.stderr.write( "%s : median, mean, and stdev of %d values == %f, %f, %f\n" % \
+#			(sys.argv[1].strip(), len(Value_list), median(Value_list), mean(Value_list), stddev(Value_list) ) )
 except ZeroDivisionError:
-	print( "a ZeroDivisionError - the input might be empty or all zero." )
+	sys.stderr.write( "a ZeroDivisionError - the input might be empty or all zero.\n" )
 fin.close()
 
 fout.write('Bin_range\tBin_label\t' + sys.argv[4].strip() + '\n')
 for key in sorted(Value_dict):
 	fout.write(str(round(key*bin_size,5)) + '<=x<' +str(round((key +1)*bin_size,5)) + '\t' + str(round(key*bin_size,5)) + '\t' + str(Value_dict[key]) + '\n') 
-print( "done" )
+try:
+	fout.write( "### %s : Total %d values counted from column %d.\n" % (sys.argv[1].strip(), num_lines, col_index) )
+	fout.write( "### %s : There were %d faulty lines.\n" % (sys.argv[1].strip(), FaultyLines) )
+	fout.write( "### %s : median, mean, min., max., and sum. of %d values == %.3f, %.3f, %.3f, %.3f, and %.3f\n" % \
+			(sys.argv[1].strip(), len(Value_list), median(Value_list), mean(Value_list), min(Value_list), max(Value_list), sum(Value_list) ) )
+#	fout.write( "### %s : median, mean, and stdev of %d values == %f, %f, %f\n" % \
+#			(sys.argv[1].strip(), len(Value_list), median(Value_list), mean(Value_list), stddev(Value_list) ) )
+except ZeroDivisionError:
+	sys.stderr.write( "a ZeroDivisionError - the input might be empty or all zero.\n" )
+
+sys.stderr.write( "done" )
 fout.close()
